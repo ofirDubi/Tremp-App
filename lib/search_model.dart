@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
 
 import 'place.dart';
 
@@ -19,7 +20,7 @@ class SearchModel extends ChangeNotifier {
     if (query == _query) {
       return;
     }
-
+    print('[+] search for string in map - $query');
     _query = query;
     _isLoading = true;
     // This call tells the widgets that are listening to this model to rebuild.
@@ -34,7 +35,7 @@ class SearchModel extends ChangeNotifier {
 
       // ignore: avoid_dynamic_calls
       final List<dynamic> features = body['features'] as List<dynamic>;
-
+      print("[+] features: $features");
       _suggestions = features
           .map((dynamic e) => Place.fromJson(e as Map<String, dynamic>))
           .toSet()

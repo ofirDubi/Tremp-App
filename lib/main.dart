@@ -7,6 +7,7 @@ import 'package:implicitly_animated_reorderable_list_2/transitions.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:material_floating_search_bar_2/material_floating_search_bar_2.dart';
 import 'package:provider/provider.dart';
+import 'dart:developer' as developer;
 
 import 'place.dart';
 import 'search_model.dart';
@@ -71,7 +72,10 @@ class _HomeState extends State<Home> {
   int get index => _index;
   set index(int value) {
     _index = min(value, 2);
-    _index == 2 ? controller.hide() : controller.show();
+    _index == 2
+        ? controller.hide()
+        : controller
+            .show(); // this hides the search controller when passing from explore/commute to saved/contribute/updates
     setState(() {});
   }
 
@@ -126,6 +130,12 @@ class _HomeState extends State<Home> {
             controller.close();
           }
         },
+        onSubmitted: (String query) {
+          print('[+] submitted search for string in map - $query');
+
+          model.clear();
+          controller.close();
+        },
         scrollPadding: EdgeInsets.zero,
         transition: CircularFloatingSearchBarTransition(spacing: 16),
         builder: (BuildContext context, _) => buildExpandableBody(model),
@@ -134,20 +144,22 @@ class _HomeState extends State<Home> {
     );
   }
 
+  // Main body
   Widget buildBody() {
     return Column(
       children: <Widget>[
         Expanded(
           child: IndexedStack(
+            // By using indexed stack we travel through different pages when clicking on the bottom navigation bar
             index: min(index, 2),
             children: const <Widget>[
-              Map(),
+              Map(), // contruct the map in the background
               SomeScrollableContent(),
               FloatingSearchAppBarExample(),
             ],
           ),
         ),
-        buildBottomNavigationBar(),
+        buildBottomNavigationBar(), // this is the lower navigation line which can be used to pass to\from different routes
       ],
     );
   }
@@ -221,7 +233,7 @@ class _HomeState extends State<Home> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        place.name,
+                        place.level1Address,
                         style: textTheme.titleMedium,
                       ),
                       const SizedBox(height: 2),
@@ -296,7 +308,7 @@ class Map extends StatelessWidget {
       fit: StackFit.expand,
       children: <Widget>[
         buildMap(),
-        buildFabs(),
+        buildFabs(), // fabs are the icons on the bottom right corner. not really interesting
       ],
     );
   }
@@ -336,6 +348,7 @@ class Map extends StatelessWidget {
     );
   }
 
+  //TODO: Here i need to take the opengl map
   Widget buildMap() {
     return Image.asset(
       'assets/map.jpg',
@@ -389,6 +402,7 @@ class _SearchBarState extends State<SearchBar> {
   }
 }
 
+// This creates 100 scrollable items
 class SomeScrollableContent extends StatelessWidget {
   const SomeScrollableContent({super.key});
 
@@ -409,6 +423,7 @@ class SomeScrollableContent extends StatelessWidget {
   }
 }
 
+// This creates 100 scrollable items which can be used with the floating seach bar
 class FloatingSearchAppBarExample extends StatelessWidget {
   const FloatingSearchAppBarExample({super.key});
 
