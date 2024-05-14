@@ -16,5 +16,6 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 
-#
- design i want - 
+# TODO:
+1. make tapping a suggestion identical to search.
+2. make another searchbar for destenation.

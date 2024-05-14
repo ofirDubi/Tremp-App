@@ -6,6 +6,20 @@ import 'package:logger/logger.dart';
 
 import 'place.dart';
 
+Future<List<Place>> queryToPlaces(String query) async {
+  final http.Response response =
+      await http.get(Uri.parse('https://photon.komoot.io/api/?q=$query'));
+  final dynamic body = json.decode(utf8.decode(response.bodyBytes));
+
+  // ignore: avoid_dynamic_calls
+  final List<dynamic> features = body['features'] as List<dynamic>;
+  print("[+] features: $features");
+  return features
+      .map((dynamic e) => Place.fromJson(e as Map<String, dynamic>))
+      .toSet()
+      .toList();
+}
+
 class SearchModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -29,17 +43,18 @@ class SearchModel extends ChangeNotifier {
     if (query.isEmpty) {
       _suggestions = history;
     } else {
-      final http.Response response =
-          await http.get(Uri.parse('https://photon.komoot.io/api/?q=$query'));
-      final dynamic body = json.decode(utf8.decode(response.bodyBytes));
+      _suggestions = await queryToPlaces(query);
+      // final http.Response response =
+      //     await http.get(Uri.parse('https://photon.komoot.io/api/?q=$query'));
+      // final dynamic body = json.decode(utf8.decode(response.bodyBytes));
 
-      // ignore: avoid_dynamic_calls
-      final List<dynamic> features = body['features'] as List<dynamic>;
-      print("[+] features: $features");
-      _suggestions = features
-          .map((dynamic e) => Place.fromJson(e as Map<String, dynamic>))
-          .toSet()
-          .toList();
+      // // ignore: avoid_dynamic_calls
+      // final List<dynamic> features = body['features'] as List<dynamic>;
+      // print("[+] features: $features");
+      // _suggestions = features
+      //     .map((dynamic e) => Place.fromJson(e as Map<String, dynamic>))
+      //     .toSet()
+      //     .toList();
     }
 
     _isLoading = false;

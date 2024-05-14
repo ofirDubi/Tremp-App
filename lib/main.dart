@@ -7,10 +7,12 @@ import 'package:implicitly_animated_reorderable_list_2/transitions.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:material_floating_search_bar_2/material_floating_search_bar_2.dart';
 import 'package:provider/provider.dart';
-import 'dart:developer' as developer;
-
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'place.dart';
+import 'myMap.dart';
 import 'search_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
@@ -70,6 +72,23 @@ class _HomeState extends State<Home> {
 
   int _index = 0;
   int get index => _index;
+  Place _searchedLocation = Place();
+  Place get searchedLocation => _searchedLocation;
+  final mapController = MapController();
+  setSearchedLocation(String query) async {
+    // Get the first location in the searched list
+    Place newSearchedLocation = (await queryToPlaces(query))[0];
+    print("[+] new searchedLocation: $_searchedLocation");
+    setState(() {
+      _searchedLocation = newSearchedLocation;
+    });
+    mapController.move(newSearchedLocation.coordinates, 15.0);
+  }
+  // set searchedLocation(String query) {
+  //   searchedLocation = await queryToPlaces(query);
+  //   setState(() {});
+  // }latitude 34.7729149 longtitude 31.8985552
+
   set index(int value) {
     _index = min(value, 2);
     _index == 2
@@ -131,8 +150,10 @@ class _HomeState extends State<Home> {
           }
         },
         onSubmitted: (String query) {
-          print('[+] submitted search for string in map - $query');
-
+          DateTime now = DateTime.now();
+          print("${now.hour}:${now.minute}:${now.second}");
+          print('[+] submitted search for string in mapaaa - $query');
+          setSearchedLocation(query);
           model.clear();
           controller.close();
         },
@@ -152,10 +173,10 @@ class _HomeState extends State<Home> {
           child: IndexedStack(
             // By using indexed stack we travel through different pages when clicking on the bottom navigation bar
             index: min(index, 2),
-            children: const <Widget>[
+            children: <Widget>[
               Map(), // contruct the map in the background
-              SomeScrollableContent(),
-              FloatingSearchAppBarExample(),
+              const SomeScrollableContent(),
+              const FloatingSearchAppBarExample(),
             ],
           ),
         ),
@@ -297,18 +318,48 @@ class _HomeState extends State<Home> {
     controller.dispose();
     super.dispose();
   }
-}
 
-class Map extends StatelessWidget {
-  const Map({super.key});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget Map() {
     return Stack(
       fit: StackFit.expand,
       children: <Widget>[
-        buildMap(),
+        buildMyMap2(),
         buildFabs(), // fabs are the icons on the bottom right corner. not really interesting
+        Text(searchedLocation.toString(),
+            style: TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget buildMyMap2() {
+    // LatLng coordinates = searchedLocation.hasName
+    //     ? searchedLocation.coordinates
+    //     : LatLng(51.509364, -0.128928);
+
+    return FlutterMap(
+      mapController: mapController,
+      options: MapOptions(
+        initialCenter: LatLng(51.509364, -0.128928),
+        initialZoom: 9.2,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.example.app',
+        ),
+        MarkerLayer(markers: [buildPin(searchedLocation.coordinates)]),
+        RichAttributionWidget(
+          attributions: [
+            TextSourceAttribution(
+              'OpenStreetMap contributors',
+              onTap: () =>
+                  launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -345,14 +396,6 @@ class Map extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  //TODO: Here i need to take the opengl map
-  Widget buildMap() {
-    return Image.asset(
-      'assets/map.jpg',
-      fit: BoxFit.cover,
     );
   }
 }
