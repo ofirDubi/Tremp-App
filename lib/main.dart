@@ -13,6 +13,7 @@ import 'place.dart';
 import 'myMap.dart';
 import 'search_model.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'other_screens.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
@@ -184,7 +185,8 @@ class _HomeState extends State<Home> {
             children: <Widget>[
               Stack(
                 children: [
-                  Map(),
+                  Map(mapController, originLocation, destinationLocation),
+                  // This is the toggle button to switch between origin and destination
                   Positioned(
                     top: 100.0, // Adjust position as needed
                     left: 0.0, // Adjust position as needed
@@ -238,19 +240,12 @@ class _HomeState extends State<Home> {
                                         style: TextStyle(fontSize: 18)),
                                   ),
                                 ],
-// to select or deselect when pressed
+                                // to select or deselect when pressed
                                 onPressed: (int newIndex) {
                                   setState(() {
                                     isChangingOrigin = newIndex == 1;
                                   });
-                                })
-
-                            // child: Text(
-                            //   border: OutlineInputBorder(
-                            //     borderRadius: BorderRadius.circular(10.0),
-                            //   ),
-                            // ),
-                            ),
+                                })),
                       ],
                     ),
                   ),
@@ -266,6 +261,7 @@ class _HomeState extends State<Home> {
     );
   }
 
+  // Hold search list
   Widget buildExpandableBody(SearchModel model) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -298,6 +294,7 @@ class _HomeState extends State<Home> {
     );
   }
 
+  // Display item on the search list
   Widget buildItem(BuildContext context, Place place) {
     final ThemeData theme = Theme.of(context);
     final TextTheme textTheme = theme.textTheme;
@@ -357,6 +354,7 @@ class _HomeState extends State<Home> {
     );
   }
 
+  // Build bottom bar
   Widget buildBottomNavigationBar() {
     return BottomNavigationBar(
       onTap: (int value) => index = value,
@@ -400,51 +398,18 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-  Widget Map() {
+  Widget Map(MapController mapController, Place originLocation,
+      Place destinationLocation) {
     return Stack(
       fit: StackFit.expand,
       children: <Widget>[
-        buildMyMap2(),
+        buildMyMap2(mapController, originLocation, destinationLocation),
         buildFabs(), // fabs are the icons on the bottom right corner. not really interesting
         // Text(searchedLocation.toString(),
         //     style: TextStyle(
         //         color: Colors.black,
         //         fontSize: 20,
         //         fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
-
-  Widget buildMyMap2() {
-    // LatLng coordinates = searchedLocation.hasName
-    //     ? searchedLocation.coordinates
-    //     : LatLng(51.509364, -0.128928);
-
-    return FlutterMap(
-      mapController: mapController,
-      options: MapOptions(
-        initialCenter: LatLng(51.509364, -0.128928),
-        initialZoom: 9.2,
-        onTap: (_, p) => print("[+] clicked on $p"),
-      ),
-      children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'com.example.app',
-        ),
-        MarkerLayer(markers: [
-          buildPin(originLocation.coordinates, Colors.black),
-          buildPin(destinationLocation.coordinates, Colors.green.shade700)
-        ]),
-        RichAttributionWidget(
-          attributions: [
-            TextSourceAttribution(
-              'OpenStreetMap contributors',
-              onTap: () =>
-                  launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -524,52 +489,6 @@ class _SearchBarState extends State<SearchBar> {
         hint: 'Search for a place',
         builder: (BuildContext context, _) {
           return Container();
-        },
-      ),
-    );
-  }
-}
-
-// This creates 100 scrollable items
-class SomeScrollableContent extends StatelessWidget {
-  const SomeScrollableContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingSearchBarScrollNotifier(
-      child: ListView.separated(
-        padding: const EdgeInsets.only(top: kToolbarHeight),
-        itemCount: 100,
-        separatorBuilder: (BuildContext context, int index) => const Divider(),
-        itemBuilder: (BuildContext context, int index) {
-          return ListTile(
-            title: Text('Item $index'),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// This creates 100 scrollable items which can be used with the floating seach bar
-class FloatingSearchAppBarExample extends StatelessWidget {
-  const FloatingSearchAppBarExample({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingSearchAppBar(
-      title: const Text('Title'),
-      transitionDuration: const Duration(milliseconds: 800),
-      color: Colors.greenAccent.shade100,
-      colorOnScroll: Colors.greenAccent.shade200,
-      body: ListView.separated(
-        padding: EdgeInsets.zero,
-        itemCount: 100,
-        separatorBuilder: (BuildContext context, int index) => const Divider(),
-        itemBuilder: (BuildContext context, int index) {
-          return ListTile(
-            title: Text('Item $index'),
-          );
         },
       ),
     );
