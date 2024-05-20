@@ -91,12 +91,17 @@ class _HomeState extends State<Home> {
         destinationLocation = newSearchedLocation;
       }
     });
-    mapController.move(newSearchedLocation.coordinates, 15.0);
+
+    if (originLocation.hashCode != 1 && destinationLocation.hashCode != 1) {
+      CameraFit ft = CameraFit.coordinates(coordinates: [
+        destinationLocation.coordinates,
+        originLocation.coordinates
+      ], padding: const EdgeInsets.all(50.0));
+      mapController.fitCamera(ft);
+    } else {
+      mapController.move(newSearchedLocation.coordinates, 15.0);
+    }
   }
-  // set searchedLocation(String query) {
-  //   searchedLocation = await queryToPlaces(query);
-  //   setState(() {});
-  // }latitude 34.7729149 longtitude 31.8985552
 
   set index(int value) {
     _index = min(value, 2);
@@ -428,7 +433,7 @@ class _HomeState extends State<Home> {
                   Navigator.push(
                     context,
                     MaterialPageRoute<dynamic>(
-                      builder: (BuildContext context) => const SearchBar(),
+                      builder: (BuildContext context) => const SearchBar2(),
                     ),
                   );
                 },
@@ -445,51 +450,6 @@ class _HomeState extends State<Home> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class SearchBar extends StatefulWidget {
-  const SearchBar({
-    super.key,
-  });
-
-  @override
-  State<SearchBar> createState() => _SearchBarState();
-}
-
-class _SearchBarState extends State<SearchBar> {
-  final FloatingSearchBarController controller = FloatingSearchBarController();
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: FloatingSearchBar(
-        contextMenuBuilder:
-            (BuildContext context, EditableTextState editableTextState) {
-          final List<ContextMenuButtonItem> buttonItems =
-              editableTextState.contextMenuButtonItems;
-
-          return AdaptiveTextSelectionToolbar.buttonItems(
-            anchors: editableTextState.contextMenuAnchors,
-            buttonItems: buttonItems,
-          );
-        },
-        controller: controller,
-        title: const Text(
-          'Aschaffenburg',
-        ),
-        hint: 'Search for a place',
-        builder: (BuildContext context, _) {
-          return Container();
-        },
       ),
     );
   }

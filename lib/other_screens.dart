@@ -1,6 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:material_floating_search_bar_2/material_floating_search_bar_2.dart';
 
+class SearchBar2 extends StatefulWidget {
+  const SearchBar2({
+    super.key,
+  });
+
+  @override
+  State<SearchBar2> createState() => _SearchBar2State();
+}
+
+class _SearchBar2State extends State<SearchBar2> {
+  final FloatingSearchBarController controller = FloatingSearchBarController();
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: FloatingSearchBar(
+        contextMenuBuilder:
+            (BuildContext context, EditableTextState editableTextState) {
+          final List<ContextMenuButtonItem> buttonItems =
+              editableTextState.contextMenuButtonItems;
+
+          return AdaptiveTextSelectionToolbar.buttonItems(
+            anchors: editableTextState.contextMenuAnchors,
+            buttonItems: buttonItems,
+          );
+        },
+        controller: controller,
+        title: const Text(
+          'Aschaffenburg',
+        ),
+        hint: 'Search for a place',
+        builder: (BuildContext context, _) {
+          return Container();
+        },
+      ),
+    );
+  }
+}
+
 // This creates 100 scrollable items
 class SomeScrollableContent extends StatelessWidget {
   const SomeScrollableContent({super.key});
