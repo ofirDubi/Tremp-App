@@ -30,9 +30,9 @@ Widget buildMyMap() {
   );
 }
 
-Marker buildPin(LatLng point) => Marker(
+Marker buildPin(LatLng point, Color c) => Marker(
       point: point,
       width: 60,
       height: 60,
-      child: const Icon(Icons.location_pin, size: 60, color: Colors.black),
+      child: Icon(Icons.location_pin, size: 60, color: c),
     );

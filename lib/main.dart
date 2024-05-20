@@ -69,18 +69,26 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final FloatingSearchBarController controller = FloatingSearchBarController();
+  final FloatingSearchBarController controller2 = FloatingSearchBarController();
 
   int _index = 0;
   int get index => _index;
-  Place _searchedLocation = Place();
-  Place get searchedLocation => _searchedLocation;
+  // Place _searchedLocation = Place();
+  // Place get searchedLocation => _searchedLocation;
+  Place originLocation = Place();
+  Place destinationLocation = Place();
   final mapController = MapController();
+  bool isChangingOrigin = false;
   setSearchedLocation(String query) async {
     // Get the first location in the searched list
     Place newSearchedLocation = (await queryToPlaces(query))[0];
-    print("[+] new searchedLocation: $_searchedLocation");
+    // print("[+] new searchedLocation: $_searchedLocation");
     setState(() {
-      _searchedLocation = newSearchedLocation;
+      if (isChangingOrigin) {
+        originLocation = newSearchedLocation;
+      } else {
+        destinationLocation = newSearchedLocation;
+      }
     });
     mapController.move(newSearchedLocation.coordinates, 15.0);
   }
@@ -174,9 +182,82 @@ class _HomeState extends State<Home> {
             // By using indexed stack we travel through different pages when clicking on the bottom navigation bar
             index: min(index, 2),
             children: <Widget>[
-              Map(), // contruct the map in the background
-              const SomeScrollableContent(),
-              const FloatingSearchAppBarExample(),
+              Stack(
+                children: [
+                  Map(),
+                  Positioned(
+                    top: 100.0, // Adjust position as needed
+                    left: 0.0, // Adjust position as needed
+                    right: 0.0, // Adjust position to span width
+                    child: Wrap(
+                      children: [
+                        Container(
+                            padding: EdgeInsets.zero,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              border:
+                                  Border.all(color: Colors.black, width: 1.0),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(5.0)),
+                            ),
+                            child: ToggleButtons(
+                                isSelected: [
+                                  !isChangingOrigin,
+                                  isChangingOrigin
+                                ],
+                                selectedColor: Colors.white,
+                                // text color of not selected toggle
+                                color: Colors.blue,
+                                // fill color of selected toggle
+                                fillColor: Colors.lightBlue.shade900,
+                                // when pressed, splash color is seen
+                                splashColor: Colors.red,
+                                // long press to identify highlight color
+                                highlightColor: Colors.orange,
+                                // if consistency is needed for all text style
+                                textStyle: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                                // border properties for each toggle
+                                renderBorder: true,
+                                borderColor: Colors.black,
+                                borderWidth: 1.5,
+                                // borderRadius: BorderRadius.circular(10),
+                                selectedBorderColor: Colors.pink,
+// add widgets for which the users need to toggle
+                                children: const [
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text('Destination',
+                                        style: TextStyle(fontSize: 18)),
+                                  ),
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 12),
+                                    child: Text('Origin',
+                                        style: TextStyle(fontSize: 18)),
+                                  ),
+                                ],
+// to select or deselect when pressed
+                                onPressed: (int newIndex) {
+                                  setState(() {
+                                    isChangingOrigin = newIndex == 1;
+                                  });
+                                })
+
+                            // child: Text(
+                            //   border: OutlineInputBorder(
+                            //     borderRadius: BorderRadius.circular(10.0),
+                            //   ),
+                            // ),
+                            ),
+                      ],
+                    ),
+                  ),
+                ],
+              ), // contruct the map in the background
+              const SomeScrollableContent(), // Contribute page
+              const FloatingSearchAppBarExample(), // Saved page
             ],
           ),
         ),
@@ -325,11 +406,11 @@ class _HomeState extends State<Home> {
       children: <Widget>[
         buildMyMap2(),
         buildFabs(), // fabs are the icons on the bottom right corner. not really interesting
-        Text(searchedLocation.toString(),
-            style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold)),
+        // Text(searchedLocation.toString(),
+        //     style: TextStyle(
+        //         color: Colors.black,
+        //         fontSize: 20,
+        //         fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -344,13 +425,17 @@ class _HomeState extends State<Home> {
       options: MapOptions(
         initialCenter: LatLng(51.509364, -0.128928),
         initialZoom: 9.2,
+        onTap: (_, p) => print("[+] clicked on $p"),
       ),
       children: [
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.app',
         ),
-        MarkerLayer(markers: [buildPin(searchedLocation.coordinates)]),
+        MarkerLayer(markers: [
+          buildPin(originLocation.coordinates, Colors.black),
+          buildPin(destinationLocation.coordinates, Colors.green.shade700)
+        ]),
         RichAttributionWidget(
           attributions: [
             TextSourceAttribution(
