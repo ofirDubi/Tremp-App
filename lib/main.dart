@@ -14,6 +14,7 @@ import 'myMap.dart';
 import 'search_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'other_screens.dart';
+import 'server_comms.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
@@ -80,6 +81,7 @@ class _HomeState extends State<Home> {
   Place destinationLocation = Place();
   final mapController = MapController();
   bool isChangingOrigin = false;
+  List<Station> visibleStations = [];
   setSearchedLocation(String query) async {
     // Get the first location in the searched list
     Place newSearchedLocation = (await queryToPlaces(query))[0];
@@ -101,6 +103,18 @@ class _HomeState extends State<Home> {
     } else {
       mapController.move(newSearchedLocation.coordinates, 15.0);
     }
+  }
+
+  void loadStations() async {
+    LatLngBounds bnds = mapController.camera.visibleBounds;
+    print(
+        "[+] attempting to load stations at bounds ${bnds.northWest}, ${bnds.southEast}");
+    List<Station>? stations =
+        await StationApi().getAllStationsInArea(bnds.northWest, bnds.southEast);
+    print("[+] stations: $stations");
+    setState(() {
+      visibleStations = stations ?? [];
+    });
   }
 
   set index(int value) {
@@ -408,7 +422,8 @@ class _HomeState extends State<Home> {
     return Stack(
       fit: StackFit.expand,
       children: <Widget>[
-        buildMyMap2(mapController, originLocation, destinationLocation),
+        buildMyMap2(mapController, originLocation, destinationLocation,
+            visibleStations),
         buildFabs(), // fabs are the icons on the bottom right corner. not really interesting
         // Text(searchedLocation.toString(),
         //     style: TextStyle(
@@ -443,7 +458,12 @@ class _HomeState extends State<Home> {
             ),
             const SizedBox(height: 16),
             FloatingActionButton(
-              onPressed: () {},
+              onPressed: () {
+                // TODO - display stations in my area by communicating with the server
+                loadStations();
+                // List<Station>? stations = StationApi().getAllStationsInArea(
+                // LatLng(32.0, 34.0), LatLng(31.0, 35.0));
+              },
               heroTag: 'öslkföl',
               backgroundColor: Colors.blue,
               child: const Icon(Icons.directions),
